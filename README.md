@@ -1,167 +1,79 @@
-# Few-shot IL
+# Hierarchical Few-shot Imitation with Skill Transition Models
 
-## Update log
+## Overview
+Official codebase for [FIST](). It contains the instructions and scripts to reproduce the experiments. 
 
-05/20:
-- Added bunch of experience config files for kitchen environment
-- Minor modifications to evaluation of kitchen env
-- Added two baselines: 1. normal behavioral cloning 2. goal conditioned behavioral cloning 
+## Dataset and envs
+We have released the datasets used for kitchen and pointmaze environments. To download them, run `python scripts/download_data.py`. A `./data` folder will get created with all the data that is needed. 
 
-Let's look at an example from each:
-
-
-#### BC
-To train the model for 200 epochs on the kitchen dataset:
-```
-python3 spirl/fewshot_bc_train.py --path spirl/configs/bc_atomic/kitchen/offline_data/no-kettle --val_data_size 160
-```
-
-Pay attention to this part in the config file:
-```
-configuration = {
-  ...
-  'num_epochs': 200,
-  'offline_data': True
-}
-```
-
-Then you need to finetune it on the few-shot data for say 50 epochs:
+The environments used in the paper are based on [D4RL]() and the extensiosn for kitchen env in the [SPiRL]() paper. The environement is also released as part of the repo that can be installed separately. It is recommended to create a separate conda env if you do not want to override your existing d4rl setup.
 
 ```
-python3 spirl/fewshot_bc_train.py --path spirl/configs/bc_atomic/kitchen/finetuned/kettle_excluded_demo_microwave_kettle_hinge_slide --val_data_size 160 --resume 199 
+cd d4rl
+pip install -e .
 ```
 
-Pay attention to these parts in the config file, the config file is basically the same as the offline data one with some minor changes:
+## Instructions
+The experimental setup of FIST has several steps. First the skill prior and contrastive distance models have to be trained using the pretraining data. Then, optionally, they can be finetuned with the demonstration data by loading their pre-trained checkpoints and minimizing the same loss on the demo data for a few more steps (e.g. 20 epochs). 
 
-```
-# make sure offline data is False, this will grab the fewshot data as the training data
-configuration = {
-  ...
-  'num_epochs': 50,
-  'offline_data': False
-}
+Each step involves its own combination of script or config file. For minor changes we just modify the config files in-place and run the same script. All the config files are released under `./spirl/configs/`. 
 
-# make sure your checkpoint from pretrained model is loaded (via --resume 199 from cmd line)
-bc_model = AttrDict(
-    ...
-    checkpt_path=f'{os.environ["EXP_DIR"]}/bc_atomic/kitchen/offline_data/no-kettle',
-)
-```
+We have also released the checkpoint files for contrastive and skill prior models. They can be downloaded by running `python scripts/download_ckpts.py`. A `./checkpoints` folder with the same folder structure as `./experiments` will get created. The proper checkpoint file can get passed to the script using either command line arguments or config file entries. 
 
-After training you have to evaluate, you open the same config file (e.g. `spirl/configs/bc_atomic/kitchen/finetuned/kettle_excluded_demo_microwave_kettle_hinge_slide`)
-and comment out the checkpoint file path that goes back to the pre-trained model
-```
-# make sure for evaluation this is commented out.
-bc_model = AttrDict(
-    ...
-    #checkpt_path=f'{os.environ["EXP_DIR"]}/bc_atomic/kitchen/offline_data/no-kettle',
-)
-```
-
-Then you run the same script, but this time you load the checkpoint from the finetuned model and also put the the script in evaluation mode:
-```
-python3 spirl/fewshot_bc_train.py --path spirl/configs/bc_atomic/kitchen/finetuned/kettle_excluded_demo_microwave_kettle_hinge_slide --val_data_size 160 --resume 49 --eval 1
-```
-
-You need to write a new eval function in other environments similar to what we had for FIST already.
-
-#### Goal-BC
-This is very similar to BC, the difference is that in the config files you should change the bc_model type from `BCMdl` to `GoalBCMdl`.
-Look at the config files for examples.
+### Example of training/evaluation from scratch
 
 
-05/10:
-- `contrastive_reachability.py`: demo file can now be not given.
-- `d4rl.kitchen_env` is updated to account for order of tasks and accepting list of tasks as kwarg.
-- fixed bugs in `spirl/components/fsil.py`
-- fixed bugs in `spirl/data/kitchen/src/kitchen_data_loader.py`
-- look at `spirl/configs/few_shot_imitation_learning/maze/hierarchical_cl_state_gc_4M_B1024_only_demos_contra/conf.py` for updated parameters.
-- implemented `eval()` in `spirl/fewshot_kitchen_train.py` for kitchen env.
-- fixed bugs in `spirl/fewshot_train.py` regarding the finetuning
-- in `spirl/fewshot_kitchen_train.py` you can now choose to finetune the entire vae + skill prior or just the skill prior alone
-- Added several experiment config files for kitchen env according to [this spredsheet](https://docs.google.com/spreadsheets/d/1uLSH7uiFf-_8gX1csu-HDk3H1Q7meofVoiXUz_n1XOE/edit#gid=0)
-- For reproducing kitchen environment experiments the following code skeletons should be used:
+**Pre-training and Fine-tuning the contrastive distance model:** Both the pre-training and fine-tuning of the contrastive encoders are done the same script by passing the PT dataset as well as the demo dataset (The demo dataset can be `None` in which case it will skip fine-tuning) 
 
-For finetuning, ckpt_path should be given as the latest checkpoint of the skill extractor run and then run 
 ```
-CUDA_VISIBLE_DEVICES=0 python3 spirl/fewshot_kitchen_train.py --path <PATH> --val_data_size 160 --resume 199
-```
-For evaluation on finetuned version, comment out the ckpt path and run:
-```
-CUDA_VISIBLE_DEVICES=0 python3 spirl/fewshot_kitchen_train.py --path <PATH> --val_data_size 160 --resume 49 --eval 1
+python scripts/train_contrastive_reachability.py --env kitchen --training-set data/kitchen/kitchen-mixed-no-topknob.hdf5 --demos data/kitchen/kitchen-demo-microwave_kettle_topknob_switch.hdf5 --save-dir experiments/contrastive/kitchen/exact-no-topknob
 ```
 
-For evaluation on the none finetuned version, keep the ckpt_path and run:
+> Note: To produce the exact experimental results in the paper we have created one contrastive encoder with both pre-training and demonstration data from all tasks (instead of one for each each downstream task). To get this checkpoint run:
+> ```
+> python scripts/train_contrastive_reachability.py --env kitchen --training-set data/kitchen/kitchen-mixed-v0.hdf5 --save-dir experiments/contrastive/kitchen/exact-mixed-all
+> ```
+
+
+**Pre-training the goal-conditioned skill VAE:** The configs for pre-training the skill prior are located under `spril/configs/skil_prior_learning`. We pre-train for ~2000 epochs similar to [SPiRL]().
+
 ```
-CUDA_VISIBLE_DEVICES=0 python3 spirl/fewshot_kitchen_train.py --path <PATH> --val_data_size 160 --resume 199 --eval 1
+python spirl/train.py --path spirl/configs/skill_prior_learning/kitchen/hierarchical_cl_gc_no_topknob --val_data_size 1024
+
 ```
 
-05/04 (part 2):
-- Created `fewshot_train.py` to create a custom training loop on top of SPiRL.
-- Some other data structures were added for fewshot_data. See `spirl/components/fsil.py`
-- few shot imitation configs has been modified to reflect the new script requirements. See `spirl/spirl/configs/few_shot_imitation_learning/maze/hierarchical_cl_state_4M_B1024_only_demos/conf.py`
-- Updated instruction on reproducing the results:
-Collecting training data and training skills (VAE) is the same as before. 
-  You will also need to source `.bashrc`.
-  
-This is what you need to run for fine-tuning to downstream demos. `--val_data_size` is 
-only required because I was lazy to remove the irrelevant codes. 
-```bash
-CUDA_VISIBLE_DEVICES=0 python spirl/fewshot_train.py \
---path=spirl/configs/few_shot_imitation_learning/maze/hierarchical_cl_state_gc_4M_B1024_only_demos/ \
---val_data_size=160 --resume 199
+Naming convention:
+
+```
+FIST (goal conditioned): hierarchical_cl_gc_xxx
+SPiRL: hierarchical_cl_xxx
 ```
 
-For running the evaluation, we use the same `conf.py` with the caveat that its checkpoint path 
-should be commented out and passed through command line interface.
+The tensorboard and checkpoint file will get stored under `experiments/skill_prior_learning/<path_to_config>`
 
-```bash
-CUDA_VISIBLE_DEVICES=0 python spirl/fewshot_train.py \
---path=spirl/configs/few_shot_imitation_learning/maze/hierarchical_cl_state_gc_4M_B1024_only_demos/ \
---val_data_size=160 --resume weights_ep9 --eval 1
+**Fine-tuning and Evaluating the goal-conditioned VAE:**
+The configs for fine-tuning the skill prior the semi-parametric evaluation are located under `spril/configs/few_shot_imitation_learning`. 
+
+For fine-tuning, the config file should include a checkpoint path referring back to the pre-trained checkpoint path. The `checkpt_path` keyword under `model_config` dictionary in the config file (`conf.py`) is the intended variable for this. The flag `--resume` selects which checkpoint epoch to use for this. 
+
+Other important parameters in the config file include `fewshot_data`,  `fewshot_batch_size`, and `finetune_vae` which determine the settings for fine-tuning. An example command would look like the following:
+
+```
+python scripts/fewshot_kitchen_train.py --path spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_topknob2_finetune_vae/ --resume 199 --val_data_size 160
 ```
 
-This command will create a video folder in the corresponding experiment folder that has an example 
-video rollout and a `summary.yaml` which summarizes the evaluation performance.
+For evaluation, we modify the same config file to ignore the pre-training checkpoint path and let the script figure out where to pick-up the fine-tuned model checkpoints. To do so we comment out the `checkpt_path` variable and run the following command on the same config file:
 
-05/04:
-- use `os.environ[‘EXP_DIR’]` to customize experiment directory -> look at `spirl/configs/few_shot_imitation_learning/maze/hierarchical_cl_state_4M_B1024/conf.py` and `.bashrc`
-- Avoid regenerating demos every time, just generate them once and save them in file, this will make sure experiments are consistent against baselines —> look at `test/test_get_demos.py` and the method `get_demo_from_file in `spirl.maze_few_demo`
-- Added a new SPiRL model to test COM conditioning: look at `spirl/configs/skill_prior_learning/maze/hierarchical_cl_state_gc_com_4M_B1024/conf.py`
-- Evaluation is now done by running the `spirl/train.py` with `--eval 1` flag instead of commenting/uncommenting the snippets of code.
-- Evaluation is now done using a predefined list of rst_points. 
-- New experiment files are added.
-
-## Data
-Data for demos is located [here](https://drive.google.com/drive/folders/11WEYuwkKOwihRohabP3y97Ze4dzhiGeW?usp=sharing).
-After downloading put it under the correct place e.g. `./data`.
-
-## Sample commands
-
-Collect train-time demonstrations on mazes with masked regions. (We already have a few in this folder).
 ```
-python d4rl/scripts/generation/generate_maze2d_datasets.py \
---noisy --env_name maze2d-large-blr-v1 \
---num_samples 4000000
+python scripts/fewshot_kitchen_train.py --path spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_topknob2_finetune_vae/ --resume weights_ep49 --eval 1
 ```
 
-Run goal/future conditioned SPiRL on mazes with masked regions
-```
-python spirl/train.py \
---path=spirl/configs/skill_prior_learning/maze/hierarchical_cl_state_4M_B1024 \
---val_data_size=1024
-```
+Here, `weights_ep49` is referring to the keyword of the checkpoints used in the experiments folder that will get created by running the fine-tuning script. Other important parameters in the config file include `contra_config` and `contra_ckpt` which determines the settings for semi-parameteric lookup. 
 
-Fine-tune the learned skills to test-time demonstrations
-```
-python spirl/train.py \
---path=spirl/configs/few_shot_imitation_learning/maze/hierarchical_cl_state_gc_4M_B1024 \
---val_data_size=4096 --resume 199
-```
 
-We have some code for rendering rollouts in train.py line 99-152.
-```
-python spirl/train.py \
---path=spirl/configs/fsil_visualization/maze/hierarchical_cl_state_4M_B1024 \
---val_data_size=1024 --resume 219
-```
+> Note: For Maze experiments use `scripts/fewshot_train.py` instead of `scripts/fewshot_kitchen_train.py`. We also found that we do not need to do any fine-tuning for pointmaze. Therefore, we can run the evaluation script by resuming the pre-trained checkpoint directly.
+
+# License 
+BSD3
+
+
