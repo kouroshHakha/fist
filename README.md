@@ -1,7 +1,7 @@
 # Hierarchical Few-shot Imitation with Skill Transition Models
 
 ## Overview
-Official codebase for [FIST](https://arxiv.org/abs/2107.08981). It contains the instructions and scripts to reproduce the experiments. 
+Official codebase for [FIST](https://arxiv.org/abs/2107.08981). It contains the instructions and scripts for reproducing the experiments. 
 
 ## Dataset and envs
 We have released the datasets used for kitchen and pointmaze environments. To download them, run `python scripts/download_data.py`. A `./data` folder will get created with all the data that is needed. 
