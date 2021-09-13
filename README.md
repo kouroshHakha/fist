@@ -1,12 +1,12 @@
 # Hierarchical Few-shot Imitation with Skill Transition Models
 
 ## Overview
-Official codebase for [FIST](). It contains the instructions and scripts to reproduce the experiments. 
+Official codebase for [FIST](https://arxiv.org/abs/2107.08981). It contains the instructions and scripts to reproduce the experiments. 
 
 ## Dataset and envs
 We have released the datasets used for kitchen and pointmaze environments. To download them, run `python scripts/download_data.py`. A `./data` folder will get created with all the data that is needed. 
 
-The environments used in the paper are based on [D4RL]() and the extensiosn for kitchen env in the [SPiRL]() paper. The environement is also released as part of the repo that can be installed separately. It is recommended to create a separate conda env if you do not want to override your existing d4rl setup.
+The environments used in the paper are based on [D4RL](https://github.com/rail-berkeley/d4rl) and the extensiosn for kitchen env in the [SPiRL](https://github.com/clvrai/spirl) paper. The environement is also released as part of the repo that can be installed separately. It is recommended to create a separate conda env if you do not want to override your existing d4rl setup.
 
 ```
 cd d4rl
@@ -35,7 +35,7 @@ python scripts/train_contrastive_reachability.py --env kitchen --training-set da
 > ```
 
 
-**Pre-training the goal-conditioned skill VAE:** The configs for pre-training the skill prior are located under `spril/configs/skil_prior_learning`. We pre-train for ~2000 epochs similar to [SPiRL]().
+**Pre-training the goal-conditioned skill VAE:** The configs for pre-training the skill prior are located under `spril/configs/skil_prior_learning`. We pre-train for ~2000 epochs similar to [SPiRL](https://github.com/clvrai/spirl/blob/581db4030989145c32bf0390cd9a1aec0f9cd0dd/spirl/configs/skill_prior_learning/kitchen/hierarchical_cl/conf.py#L16).
 
 ```
 python spirl/train.py --path spirl/configs/skill_prior_learning/kitchen/hierarchical_cl_gc_no_topknob --val_data_size 1024
@@ -61,6 +61,25 @@ Other important parameters in the config file include `fewshot_data`,  `fewshot_
 ```
 python scripts/fewshot_kitchen_train.py --path spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_topknob2_finetune_vae/ --resume 199 --val_data_size 160
 ```
+
+
+List of configs for kithen env:
+| Task (Unseen)                                                  | Performance          | config folder |
+|----------------------------------------------------------------|-------------------------|---------------|
+| Microwave, Kettle, \textbf{Top Burner}, Light Switch           | $\mathbf{3.6 \pm 0.16}$ | spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_demo_topknob2_finetune_vae |
+| \textbf{Microwave}, Bottom Burner, Light Switch, Slide Cabinet | $\mathbf{2.3 \pm 0.5}$  | spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_demo_microwave_finetune_vae |
+| Microwave, \textbf{Kettle}, Slide Cabinet, Hinge Cabinet       | $\mathbf{3.5 \pm 0.3}$  | spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_kettle2_finetune_vae |
+| Microwave, Kettle, \textbf{Slide Cabinet}, Hinge Cabinet       | $\mathbf{4.0 \pm 0.0}$  | spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_slide_finetune_vae |
+
+
+List of configs for pointmaze env:
+| Section | FIST                  | | config folder|
+|------------|--------------------------------------|---|--|
+|             | Episode length | SR | |
+| Left     | $363.87 \pm 18.73$ |$0.99 \pm 0.03$  | spirl/configs/few_shot_imitation_learning/maze_left/hierarchical_cl_state_gc_4M_B1024_only_demos_contra|
+| Right    | $571.21 \pm 38.82$ | $0.91 \pm 0.07$ |spirl/configs/few_shot_imitation_learning/maze_right/hierarchical_cl_state_gc_4M_B1024_only_demos_contra |
+| Bottom | $359.82 \pm 3.62$ | $1.0 \pm 0.0$      |spirl/configs/few_shot_imitation_learning/maze_bottom | 
+
 
 For evaluation, we modify the same config file to ignore the pre-training checkpoint path and let the script figure out where to pick-up the fine-tuned model checkpoints. To do so we comment out the `checkpt_path` variable and run the following command on the same config file:
 
