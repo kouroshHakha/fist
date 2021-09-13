@@ -6,6 +6,7 @@ from spirl.utils.download import download_file_from_google_drive, unzip
 FILE_IDS = {
     'kitchen': '1RE4XwTmZQ7xMKBU4ZXtCwBhvxZQKjXdN',
     'pointmaze': '1ySROlRBABWpK0CXP9e8B3pCpeDlbvuwh',
+    'antmaze': '1-Zsd0HZYJ6XzcSJTaQfMXnz58IbSMepF'
 }
 
 data_dir = Path('./data')

@@ -10,7 +10,8 @@ from spirl.data.maze.src.maze_data_loader import MazeStateSequenceDataset
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
-
+data_spec['n_actions'] = 8
+data_spec['state_dim'] = 29
 configuration = {
     'model': ClSPiRLMdl,
     'logger': SkillSpaceLogger,
@@ -19,7 +20,7 @@ configuration = {
     'evaluator': TopOfNSequenceEvaluator,
     'top_of_n_eval': 100,
     'top_comp_metric': 'mse',
-    'batch_size': 1024
+    'batch_size': 128
 }
 configuration = AttrDict(configuration)
 
@@ -38,6 +39,6 @@ model_config = AttrDict(
 data_config = AttrDict()
 data_config.dataset_spec = data_spec
 data_config['dataset_spec']['dataset_class'] = MazeStateSequenceDataset
-data_config['dataset_spec']['env_name'] = 'maze2d-large-v1'
-data_config['dataset_spec']['dataset_path'] = './maze2d-large-blr-v1-noisy-4M.hdf5'
+data_config['dataset_spec']['env_name'] = 'antmaze-large-diverse-v0'
+data_config['dataset_spec']['dataset_path'] = './data/antmaze/Antmaze_filtered_LR.hdf5'
 data_config.dataset_spec.subseq_len = model_config.n_rollout_steps + 1

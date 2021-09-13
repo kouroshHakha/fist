@@ -4,20 +4,20 @@ import numpy as np
 from spirl.models.closed_loop_spirl_mdl import GoalClSPiRLMdl
 from spirl.models.skill_prior_mdl import SkillSpaceLogger
 from spirl.utils.general_utils import AttrDict
-from spirl.configs.default_data_configs.maze import data_spec
+from spirl.configs.default_data_configs.antmaze import data_spec
 from spirl.components.evaluator import TopOfNSequenceEvaluator
 from spirl.data.maze.src.maze_data_loader import MazeStateSequenceDataset
+from spirl.maze_few_demo import get_demo_from_file, process_demo
 
 from spirl.components.fsil import FewshotDataset
 
 NUM_IL_DEMO = 10
 subseq_len = 10
 fewshot_dataset = FewshotDataset(
-    'data/maze/demos.pkl',
+    'data/antmaze/Antmaze_LR.pkl',
     num_demo=NUM_IL_DEMO,
     subseq_len=subseq_len,
 )
-
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
 contra_model_cf = AttrDict(
@@ -30,37 +30,39 @@ configuration = {
     'model': GoalClSPiRLMdl,
     'logger': SkillSpaceLogger,
     'data_dir': '.',
-    'epoch_cycles_train': 1,
+    'epoch_cycles_train': 10,
+    'lr': 1e-5,
     'evaluator': TopOfNSequenceEvaluator,
     'top_of_n_eval': 100,
     'top_comp_metric': 'mse',
     'batch_size': 128,
-    'num_epochs': 200,
+    'num_epochs': 220,  # Total including pre-trained 200
     'fewshot_data': fewshot_dataset,
     'fewshot_batch_size': 128,
+    'finetune_vae': False,
     'contra_config': contra_model_cf,
-    'contra_ckpt': './experiments/contrastive/maze/exact-2021-05-06-9-56/exact_model.pt',
-    'finetune_vae': True,
-    'rst_data_path': './data/maze/rsts.npy'
+    'contra_ckpt': './experiments/antmaze/contrastive_LR/exact_fine_tuned_model.pt',
+    'rst_data_path': './data/antmaze/ant_resets_LR.npy'
 }
 configuration = AttrDict(configuration)
 
 model_config = AttrDict(
     state_dim=data_spec.state_dim,
     action_dim=data_spec.n_actions,
-    n_rollout_steps=subseq_len,
+    n_rollout_steps=10,
     kl_div_weight=1e-2,
     nz_enc=32,
     nz_mid=32,
     n_processing_layers=3,
     cond_decode=True,
-    checkpt_path=f'{os.environ["EXP_DIR"]}/skill_prior_learning/maze/hierarchical_cl_state_gc_4M_B1024'
+    checkpt_path=f'{os.environ["EXP_DIR"]}/skill_prior_learning/maze/hierarchical_cl_state_gc'
+    # checkpt_path=f'{os.environ["EXP_DIR"]}/few_shot_imitation_learning/maze/hierarchical_cl_state_gc_4M_B1024'
 )
 
 # Dataset
 data_config = AttrDict()
 data_config.dataset_spec = data_spec
 data_config['dataset_spec']['dataset_class'] = MazeStateSequenceDataset
-data_config['dataset_spec']['env_name'] = 'maze2d-large-v1'
-data_config['dataset_spec']['dataset_path'] = './data/maze/maze2d-large-blr-v1-noisy-4M.hdf5'
+data_config['dataset_spec']['env_name'] = 'antmaze-large-diverse-v0'
+data_config['dataset_spec']['dataset_path'] = './data/antmaze/Antmaze_filtered_LR.hdf5'
 data_config.dataset_spec.subseq_len = model_config.n_rollout_steps + 1
