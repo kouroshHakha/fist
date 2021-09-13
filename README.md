@@ -16,14 +16,14 @@ pip install -e .
 ## Instructions
 The experimental setup of FIST has several steps. First the skill prior and contrastive distance models have to be trained using the pretraining data. Then, optionally, they can be finetuned with the demonstration data by loading their pre-trained checkpoints and minimizing the same loss on the demo data for a few more steps (e.g. 20 epochs). 
 
-Each step involves its own combination of script or config file. For minor changes we just modify the config files in-place and run the same script. All the config files are released under `./spirl/configs/`. 
+Each step involves its own combination of script or config file. For minor changes we just modify the config files in-place and run the same script. All the config files are released under `./spirl/configs/`, and the results will be logged in `./experiments` folder.
 
-We have also released the checkpoint files for contrastive and skill prior models. They can be downloaded by running `python scripts/download_ckpts.py`. A `./checkpoints` folder with the same folder structure as `./experiments` will get created. The proper checkpoint file can get passed to the script using either command line arguments or config file entries. 
+We have also released the checkpoint files for contrastive encoders and skill prior models. They can be downloaded by running `python scripts/download_ckpts.py`. A `./checkpoints` folder with the same folder structure as `./experiments` will get created. The proper checkpoint file can get passed to the script using either command line arguments or config file entries. 
 
 ### Example of training/evaluation from scratch
 
 
-**Pre-training and Fine-tuning the contrastive distance model:** Both the pre-training and fine-tuning of the contrastive encoders are done the same script by passing the PT dataset as well as the demo dataset (The demo dataset can be `None` in which case it will skip fine-tuning) 
+**Pre-training and Fine-tuning the contrastive distance model:** Both the pre-training and fine-tuning of the contrastive encoders are done with the same script by passing the PT dataset as well as the demo dataset (The demo dataset can be `None` in which case it will skip fine-tuning) 
 
 ```
 python scripts/train_contrastive_reachability.py --env kitchen --training-set data/kitchen/kitchen-mixed-no-topknob.hdf5 --demos data/kitchen/kitchen-demo-microwave_kettle_topknob_switch.hdf5 --save-dir experiments/contrastive/kitchen/exact-no-topknob
@@ -42,19 +42,19 @@ python spirl/train.py --path spirl/configs/skill_prior_learning/kitchen/hierarch
 
 ```
 
-Naming convention:
+The following is the naming convention for skill prior learning config files:
 
 ```
 FIST (goal conditioned): hierarchical_cl_gc_xxx
 SPiRL: hierarchical_cl_xxx
 ```
 
-The tensorboard and checkpoint file will get stored under `experiments/skill_prior_learning/<path_to_config>`
+The tensorboard and checkpoint file will get stored under `experiments/skill_prior_learning/<path_to_config>`.
 
 **Fine-tuning and Evaluating the goal-conditioned VAE:**
-The configs for fine-tuning the skill prior the semi-parametric evaluation are located under `spril/configs/few_shot_imitation_learning`. 
+The configs for fine-tuning the skill prior and evaluating with the semi-parametric approach are located under `spril/configs/few_shot_imitation_learning`. 
 
-For fine-tuning, the config file should include a checkpoint path referring back to the pre-trained checkpoint path. The `checkpt_path` keyword under `model_config` dictionary in the config file (`conf.py`) is the intended variable for this. The flag `--resume` selects which checkpoint epoch to use for this. 
+For fine-tuning, the config file should include a checkpoint path referring back to the pre-trained model. The `checkpt_path` keyword under `model_config` dictionary in the config file (`conf.py`) is the intended variable for this. The flag `--resume` selects which checkpoint epoch to use for this. 
 
 Other important parameters in the config file include `fewshot_data`,  `fewshot_batch_size`, and `finetune_vae` which determine the settings for fine-tuning. An example command would look like the following:
 
@@ -63,7 +63,7 @@ python scripts/fewshot_kitchen_train.py --path spirl/configs/few_shot_imitation_
 ```
 
 
-List of configs for kithen env:
+List of fine-tuning configs for kithen env:
 | Task (Unseen)                                                  | Performance          | config folder |
 |----------------------------------------------------------------|-------------------------|---------------|
 | Microwave, Kettle, \textbf{Top Burner}, Light Switch           | $\mathbf{3.6 \pm 0.16}$ | spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_demo_topknob2_finetune_vae |
@@ -72,13 +72,13 @@ List of configs for kithen env:
 | Microwave, Kettle, \textbf{Slide Cabinet}, Hinge Cabinet       | $\mathbf{4.0 \pm 0.0}$  | spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_slide_finetune_vae |
 
 
-List of configs for pointmaze env:
+List of fine-tuning configs for pointmaze env:
 | Section | FIST                  | | config folder|
 |------------|--------------------------------------|---|--|
 |             | Episode length | SR | |
 | Left     | $363.87 \pm 18.73$ |$0.99 \pm 0.03$  | spirl/configs/few_shot_imitation_learning/maze_left/hierarchical_cl_state_gc_4M_B1024_only_demos_contra|
 | Right    | $571.21 \pm 38.82$ | $0.91 \pm 0.07$ |spirl/configs/few_shot_imitation_learning/maze_right/hierarchical_cl_state_gc_4M_B1024_only_demos_contra |
-| Bottom | $359.82 \pm 3.62$ | $1.0 \pm 0.0$      |spirl/configs/few_shot_imitation_learning/maze_bottom | 
+| Bottom | $359.82 \pm 3.62$ | $1.0 \pm 0.0$      |spirl/configs/few_shot_imitation_learning/maze_bottom (TODO) | 
 
 
 For evaluation, we modify the same config file to ignore the pre-training checkpoint path and let the script figure out where to pick-up the fine-tuned model checkpoints. To do so we comment out the `checkpt_path` variable and run the following command on the same config file:
