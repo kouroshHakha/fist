@@ -15,11 +15,11 @@ def parse_args():
     parser.add_argument('--mode', default='exact')
     parser.add_argument('--save-dir')
     parser.add_argument('--training-epochs', type=int, default=200)
-    parser.add_argument('--fine-tune-epochs', type=int, default=20)
+    parser.add_argument('--finetune-epochs', type=int, default=20)
     parser.add_argument('--num-demos', type=int, default=10)
     parser.add_argument('--horizon', type=int, default=10)
     parser.add_argument('--batch-size', type=int, default=1024)
-    parser.add_argument('--fine-tune-size', type=int, default=512)
+    parser.add_argument('--finetune-size', type=int, default=512)
 
     parser.add_argument('--hidden-size', type=int, default=128)
     parser.add_argument('--feature-size', type=int, default=32)
