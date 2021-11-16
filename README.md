@@ -9,6 +9,7 @@ To install:
 ```
 pip install -r requirements.txt
 export PYTHONPATH='./':$PYTHONPATH
+export EXP_DIR='./experiments'
 ```
 
 The environments used in the paper are based on [D4RL](https://github.com/rail-berkeley/d4rl) and the extensiosn for kitchen env in the [SPiRL](https://github.com/clvrai/spirl) paper. The environement is also released as part of the repo that can be installed separately. It is recommended to create a separate conda env if you do not want to override your existing d4rl setup.
