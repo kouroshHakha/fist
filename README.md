@@ -4,7 +4,12 @@
 Official codebase for [FIST](). It contains the instructions and scripts for reproducing the experiments. 
 
 ## Dataset and envs
-We have released the datasets used for kitchen and pointmaze environments. To download them, run `python scripts/download_data.py`. A `./data` folder will get created with all the data that is needed. 
+
+To install:
+```
+pip install -r requirements.txt
+export PYTHONPATH='./':$PYTHONPATH
+```
 
 The environments used in the paper are based on [D4RL](https://github.com/rail-berkeley/d4rl) and the extensiosn for kitchen env in the [SPiRL](https://github.com/clvrai/spirl) paper. The environement is also released as part of the repo that can be installed separately. It is recommended to create a separate conda env if you do not want to override your existing d4rl setup.
 
@@ -12,6 +17,8 @@ The environments used in the paper are based on [D4RL](https://github.com/rail-b
 cd d4rl
 pip install -e .
 ```
+
+We have released the datasets used for kitchen and pointmaze environments. To download them, run `python scripts/download_data.py`. A `./data` folder will get created with all the data that is needed. 
 
 ## Instructions
 The experimental setup of FIST has several steps. First the skill prior and contrastive distance models have to be trained using the pretraining data. Then, optionally, they can be finetuned with the demonstration data by loading their pre-trained checkpoints and minimizing the same loss on the demo data for a few more steps (e.g. 20 epochs). 
