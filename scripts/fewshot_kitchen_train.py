@@ -8,7 +8,7 @@ from spirl.utils.debug import register_pdb_hook
 register_pdb_hook()
 
 from spirl.utils.pytorch_utils import ar2ten, ten2ar
-from spirl.fewshot_train import ModelTrainer as FSTrainer
+from scripts.fewshot_train import ModelTrainer as FSTrainer
 from ruamel.yaml import YAML
 yaml=YAML(typ='safe')
 
