@@ -62,7 +62,7 @@ The tensorboard and checkpoint file will get stored under `experiments/skill_pri
 **Fine-tuning and Evaluating the goal-conditioned VAE:**
 The configs for fine-tuning the skill prior and evaluating with the semi-parametric approach are located under `spril/configs/few_shot_imitation_learning`. 
 
-For fine-tuning, the config file should include a checkpoint path referring back to the pre-trained model. The `checkpt_path` keyword under `model_config` dictionary in the config file (`conf.py`) is the intended variable for this. The flag `--resume` selects which checkpoint epoch to use for this. 
+For fine-tuning, the config file should include a checkpoint path referring back to the pre-trained model. The `checkpt_path` keyword under `model_config` dictionary in the config file (`conf.py`) is the intended variable for this. The flag `--resume` selects which checkpoint epoch to use for this. For example, to run the "Microwave-Kettle-\textbf{Top Burner}-Light Switch" experiment on the kitchen environment, you should uncomment line 55 in spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_topknob2_finetune_vae/conf.py
 
 Other important parameters in the config file include `fewshot_data`,  `fewshot_batch_size`, and `finetune_vae` which determine the settings for fine-tuning. An example command would look like the following:
 
@@ -74,8 +74,8 @@ python scripts/fewshot_kitchen_train.py --path spirl/configs/few_shot_imitation_
 List of fine-tuning configs for kithen env:
 | Task (Unseen)                                                  | Performance          | config folder |
 |----------------------------------------------------------------|-------------------------|---------------|
-| Microwave, Kettle, \textbf{Top Burner}, Light Switch           | $\mathbf{3.6 \pm 0.16}$ | spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_demo_topknob2_finetune_vae |
-| \textbf{Microwave}, Bottom Burner, Light Switch, Slide Cabinet | $\mathbf{2.3 \pm 0.5}$  | spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_demo_microwave_finetune_vae |
+| Microwave, Kettle, \textbf{Top Burner}, Light Switch           | $\mathbf{3.6 \pm 0.16}$ | spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_topknob2_finetune_vae |
+| \textbf{Microwave}, Bottom Burner, Light Switch, Slide Cabinet | $\mathbf{2.3 \pm 0.5}$  | spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_microwave_finetune_vae |
 | Microwave, \textbf{Kettle}, Slide Cabinet, Hinge Cabinet       | $\mathbf{3.5 \pm 0.3}$  | spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_kettle2_finetune_vae |
 | Microwave, Kettle, \textbf{Slide Cabinet}, Hinge Cabinet       | $\mathbf{4.0 \pm 0.0}$  | spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_slide_finetune_vae |
 
@@ -89,7 +89,7 @@ List of fine-tuning configs for pointmaze env:
 | Bottom | $359.82 \pm 3.62$ | $1.0 \pm 0.0$      |spirl/configs/few_shot_imitation_learning/maze_bottom (TODO) | 
 
 
-For evaluation, we modify the same config file to ignore the pre-training checkpoint path and let the script figure out where to pick-up the fine-tuned model checkpoints. To do so we comment out the `checkpt_path` variable and run the following command on the same config file:
+For evaluation, we modify the same config file to ignore the pre-training checkpoint path and let the script figure out where to pick-up the fine-tuned model checkpoints. To do so we comment out the `checkpt_path` variable on the config file uncommented in the last step, and run the following command on the same config file:
 
 ```
 python scripts/fewshot_kitchen_train.py --path spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_topknob2_finetune_vae/ --resume weights_ep49 --eval 1
