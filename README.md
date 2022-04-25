@@ -62,7 +62,7 @@ The tensorboard and checkpoint file will get stored under `experiments/skill_pri
 **Fine-tuning and Evaluating the goal-conditioned VAE:**
 The configs for fine-tuning the skill prior and evaluating with the semi-parametric approach are located under `spril/configs/few_shot_imitation_learning`. 
 
-For fine-tuning, the config file should include a checkpoint path referring back to the pre-trained model. The `checkpt_path` keyword under `model_config` dictionary in the config file (`conf.py`) is the intended variable for this. The flag `--resume` selects which checkpoint epoch to use for this. For example, to run the "Microwave-Kettle-**Top Burner**-Light Switch" experiment on the kitchen environment, you should uncomment line 55 in spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_topknob2_finetune_vae/conf.py
+For fine-tuning, the config file should include a checkpoint path referring back to the pre-trained model. The `checkpt_path` keyword under `model_config` dictionary in the config file (`conf.py`) is the intended variable for this. The flag `--resume` selects which checkpoint epoch to use for this. For example, to run the "Microwave-Kettle-**Top Burner**-Light Switch" experiment on the kitchen environment, you should uncomment line 55 in spirl/configs/few_shot_imitation_learning/kitchen/hierarchical_cl_gc_demo_topknob2_finetune_vae/conf.py.
 
 Other important parameters in the config file include `fewshot_data`,  `fewshot_batch_size`, and `finetune_vae` which determine the settings for fine-tuning. An example command would look like the following:
 
